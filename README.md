@@ -43,11 +43,37 @@ To make healthcare **accessible, multilingual, and AI-driven** for everyone in R
 
 ---
 
-## ⚙️ Setup & Local Development
+🩺 Usage
 
-Follow these steps to run RMPA locally:
+Speak your symptoms using the microphone.
 
-### 1️⃣ Clone the Repository
-```bash
-git clone <your-repo-url>
-cd Rajasthan-Medical-Problem-Assistant
+Upload medical images or prescriptions (optional).
+
+View and listen to AI-generated medical advice.y:
+
+Rajasthan-Medical-Problem-Assistant/
+├── brain_of_the_doctor.py         # AI logic for image & symptom analysis
+├── gradio_app.py                  # Main Gradio web app
+├── requirements.txt               # Project dependencies
+├── render.yaml                    # Render deployment configuration
+├── voice_of_the_doctor.py         # Text-to-speech system
+├── voice_of_the_patient.py        # Voice transcription system
+├── .env.example                   # Example environment variables
+└── technical_architecture.png     # System architecture image
+
+Rajasthan Health Focus
+
+☀️ Heatstroke and Dehydration
+
+💧 Waterborne Diseases (Typhoid, Cholera, Diarrhea)
+
+🧒 Malnutrition and Anemia
+
+🌫️ Dust and Respiratory Issues
+
+🦵 Joint Pain and Arthritis
+
+👤 Author
+
+Aditya Kumar Mishra 
+Adapted for Rajasthan’s Healthcare Context
