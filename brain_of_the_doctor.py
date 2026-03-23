@@ -1,27 +1,26 @@
-
 from dotenv import load_dotenv
 load_dotenv()
 
 import os
-
-GROQ_API_KEY=os.environ.get("GROQ_API_KEY")
-
 import base64
-
-
-def encode_image(image_path):   
-    image_file=open(image_path, "rb")
-    return base64.b64encode(image_file.read()).decode('utf-8')
-
 from groq import Groq
 
-query="Is there something wrong with my face?"
+# Load Groq API Key
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-model="meta-llama/llama-4-scout-17b-16e-instruct"
+def encode_image(image_path):   
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+# Default values
+query = "Is there something wrong with my face?"
+# Use a valid vision model. llama-3.2-11b-vision-preview has been decommissioned.
+# llava-v1.5-7b-4096 is a stable alternative for vision tasks on Groq.
+model = "llava-v1.5-7b-4096"
 
 def analyze_image_with_query(query, model, encoded_image):
-    client=Groq()  
-    messages=[
+    client = Groq(api_key=GROQ_API_KEY)  
+    messages = [
         {
             "role": "user",
             "content": [
@@ -37,7 +36,7 @@ def analyze_image_with_query(query, model, encoded_image):
                 },
             ],
         }]
-    chat_completion=client.chat.completions.create(
+    chat_completion = client.chat.completions.create(
         messages=messages,
         model=model
     )
