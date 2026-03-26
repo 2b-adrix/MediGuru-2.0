@@ -50,7 +50,7 @@ class DiagnosisRepository @Inject constructor(
             // 2. Analyze with Vision Model
             val encodedImage = imageUri?.let { encodeImage(it) }
             
-            // Using llama-3.2-90b-vision-preview as the 11b version has been decommissioned on Groq.
+            // Using llama-3.2-90b-vision-preview as llama-3.2-11b-vision-preview was decommissioned.
             val modelId = if (encodedImage != null) "llama-3.2-90b-vision-preview" else "llama-3.3-70b-versatile"
 
             val systemPrompt = "You are MediGuru, a professional medical AI assistant. You specialize in reading medical prescriptions, analyzing X-rays, and interpreting patient symptoms. " +
@@ -104,21 +104,26 @@ class DiagnosisRepository @Inject constructor(
     }
 
     private fun encodeImage(uri: Uri): String {
-        val inputStream = context.contentResolver.openInputStream(uri)
-        val bitmap = BitmapFactory.decodeStream(inputStream)
-        val outputStream = ByteArrayOutputStream()
-        
-        // High resolution for OCR accuracy
-        val maxDimension = 1536
-        val scaledBitmap = if (bitmap != null && (bitmap.width > maxDimension || bitmap.height > maxDimension)) {
-            val ratio = Math.min(maxDimension.toFloat() / bitmap.width, maxDimension.toFloat() / bitmap.height)
-            Bitmap.createScaledBitmap(bitmap, (bitmap.width * ratio).toInt(), (bitmap.height * ratio).toInt(), true)
-        } else {
-            bitmap
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            val outputStream = ByteArrayOutputStream()
+            
+            // High resolution for OCR accuracy
+            val maxDimension = 1536
+            val scaledBitmap = if (bitmap != null && (bitmap.width > maxDimension || bitmap.height > maxDimension)) {
+                val ratio = Math.min(maxDimension.toFloat() / bitmap.width, maxDimension.toFloat() / bitmap.height)
+                Bitmap.createScaledBitmap(bitmap, (bitmap.width * ratio).toInt(), (bitmap.height * ratio).toInt(), true)
+            } else {
+                bitmap
+            }
+            
+            scaledBitmap?.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
+            Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to encode image")
+            ""
         }
-        
-        scaledBitmap?.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
-        return Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
     }
 
     private fun saveImageToInternalStorage(uri: Uri): String? {
