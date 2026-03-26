@@ -254,167 +254,76 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                                     micPermissionState.launchPermissionRequest()
                                 }
                             }
-                            Column {
-                                Text(if (state.isRecording) "Listening..." else "Tap to Speak", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                                Text(state.transcription.ifBlank { "Describe your condition" }, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (state.isRecording) "Listening..." else if (state.transcription.isEmpty()) "Tap mic to start" else "Analysis Ready",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                if (state.transcription.isNotEmpty()) {
+                                    Text(state.transcription, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                }
+                            }
+                            
+                            Box(contentAlignment = Alignment.Center) {
+                                Button(
+                                    onClick = { viewModel.processDiagnosis() },
+                                    enabled = !isProcessing && (state.transcription.isNotEmpty() || state.selectedImageUri != null),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Text("Analyze")
+                                }
+                                if (isProcessing) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                item {
-                    Button(
-                        onClick = { viewModel.processDiagnosis() },
-                        modifier = Modifier.fillMaxWidth().height(64.dp),
-                        enabled = !isProcessing,
-                        shape = RoundedCornerShape(20.dp)
-                    ) {
-                        AnimatedContent(targetState = state.status, label = "") { status ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (isProcessing) {
-                                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = LocalContentColor.current, strokeWidth = 2.dp)
-                                    Spacer(Modifier.width(12.dp))
-                                    Text(when(status) {
-                                        DiagnosisStatus.NEURAL_ANALYSIS -> "Neural Stress Scan..."
-                                        DiagnosisStatus.GENOMIC_MAPPING -> "Mapping Genomes..."
-                                        DiagnosisStatus.RADIOLOGIST_REVIEW -> "Radiologist Analyzing..."
-                                        DiagnosisStatus.SPECIALIST_CONSULT -> "Specialist Review..."
-                                        DiagnosisStatus.PHARMACIST_CHECK -> "Pharmacist Verifying..."
-                                        else -> "Board Meeting..."
-                                    })
-                                } else {
-                                    Icon(Icons.Default.Groups, null)
-                                    Spacer(Modifier.width(12.dp))
-                                    Text("Summon Medical Board", fontWeight = FontWeight.Bold)
-                                }
-                            }
+                if (state.status == DiagnosisStatus.ERROR) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                        ) {
+                            Text(
+                                text = state.error?.asString(context) ?: "Unknown Error",
+                                modifier = Modifier.padding(16.dp),
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
                         }
                     }
                 }
 
                 if (state.doctorResponse.isNotEmpty()) {
                     item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(28.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
-                        ) {
-                            Column(modifier = Modifier.padding(24.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.VerifiedUser, null, tint = MaterialTheme.colorScheme.primary)
-                                        Spacer(Modifier.width(12.dp))
-                                        Text("Official Board Consensus", fontWeight = FontWeight.Bold)
-                                    }
-                                    Row {
-                                        IconButton(onClick = { 
-                                            val file = PdfGenerator.generateMedicalReport(
-                                                context, 
-                                                state.transcription, 
-                                                state.doctorResponse, 
-                                                state.selectedImageUri
-                                            )
-                                            if (file != null) {
-                                                openPdf(context, file)
-                                            } else {
-                                                Toast.makeText(context, "Failed to generate report", Toast.LENGTH_SHORT).show()
-                                            }
-                                        }) {
-                                            Icon(Icons.Outlined.PictureAsPdf, contentDescription = "Download Report", tint = MaterialTheme.colorScheme.primary)
-                                        }
-                                        IconButton(onClick = { copyToClipboard(context, state.doctorResponse) }) {
-                                            Icon(Icons.Outlined.ContentCopy, contentDescription = null, modifier = Modifier.size(20.dp))
-                                        }
-                                    }
-                                }
-                                Spacer(Modifier.height(12.dp))
-                                Text(state.doctorResponse, style = MaterialTheme.typography.bodyLarge, lineHeight = 28.sp)
+                        DiagnosisResultCard(
+                            response = state.doctorResponse,
+                            transcription = state.transcription,
+                            imageUri = state.selectedImageUri,
+                            trajectory = state.trajectory,
+                            onCopy = { copyToClipboard(context, state.doctorResponse) },
+                            onShare = { shareDiagnosis(context, state.doctorResponse) },
+                            onPdf = { transcription, response, imageUri ->
+                                val file = PdfGenerator.generateMedicalReport(context, transcription, response, imageUri)
+                                if (file != null) openPdf(context, file)
                             }
-                        }
-                    }
-                }
-
-                if (state.trajectory.isNotEmpty()) {
-                    item {
-                        Text("Quantum Recovery Pathway", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.height(12.dp))
-                        RecoveryTrajectoryView(trajectory = state.trajectory)
+                        )
                     }
                 }
 
                 if (history.isNotEmpty()) {
-                    item { Text("Board Records", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold) }
-                    items(history) { diagnosis -> HistoryItem(diagnosis, context) }
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun BoardDiscussionLog(log: List<BoardMessage>) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Board Discussion Log", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.height(8.dp))
-                log.forEach { msg ->
-                    Text(
-                        text = "[${msg.agent}]: ${msg.message}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 2.dp)
-                    )
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun RecoveryTrajectoryView(trajectory: List<RecoveryMilestone>) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            trajectory.forEachIndexed { index, milestone ->
-                Row(verticalAlignment = Alignment.Top) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Surface(
-                            modifier = Modifier.size(32.dp),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = milestone.day.toString(),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                        if (index < trajectory.size - 1) {
-                            Box(
-                                modifier = Modifier
-                                    .width(2.dp)
-                                    .height(40.dp)
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-                            )
-                        }
+                    item {
+                        Text("Medical History", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     }
-                    Spacer(Modifier.width(16.dp))
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(milestone.action, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                            Text(milestone.bioTarget, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
-                        }
+                    items(history) { diagnosis ->
+                        HistoryItem(diagnosis, context)
                     }
                 }
             }
@@ -423,30 +332,42 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     @Composable
     fun BioTwinDashboard(vitals: BioVitals, targetSystem: BioSystem, isProcessing: Boolean, geneticScore: Float) {
+        val infiniteTransition = rememberInfiniteTransition(label = "")
+        val pulse by infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.1f,
+            animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse), label = ""
+        )
+
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+            shape = RoundedCornerShape(32.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column(modifier = Modifier.padding(24.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.AccessibilityNew, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Quantum Bio-Simulation", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.weight(1f))
-                    if (targetSystem != BioSystem.NONE) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = targetSystem.name,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                    Box(modifier = Modifier.size(64.dp).scale(if (isProcessing) pulse else 1f), contentAlignment = Alignment.Center) {
+                        Surface(modifier = Modifier.fillMaxSize(), shape = CircleShape, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) {}
+                        Icon(
+                            imageVector = when(targetSystem) {
+                                BioSystem.NERVOUS -> Icons.Default.Psychology
+                                BioSystem.RESPIRATORY -> Icons.Default.Air
+                                BioSystem.CARDIOVASCULAR -> Icons.Default.Favorite
+                                else -> Icons.Default.AccessibilityNew
+                            },
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text("Patient Digital Twin", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = if (isProcessing) "Live System Analysis..." else "Status: Optimal",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isProcessing) MaterialTheme.colorScheme.primary else Color.Gray
+                        )
                     }
                 }
                 Spacer(Modifier.height(16.dp))
@@ -494,7 +415,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             specialists.forEachIndexed { index, specialist ->
                 val isActive = when(index) {
                     0 -> currentStatus == DiagnosisStatus.RADIOLOGIST_REVIEW
-                    1 -> currentStatus == DiagnosisStatus.SPECIALIST_CONSULT || currentStatus == DiagnosisStatus.GP_CONSULTATION
+                    1 -> currentStatus == DiagnosisStatus.SPECIALIST_CONSULT
                     2 -> currentStatus == DiagnosisStatus.PHARMACIST_CHECK
                     else -> false
                 }
@@ -527,6 +448,84 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                 Icon(icon, null, modifier = Modifier.padding(12.dp), tint = if (isActive) Color.White else MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(name, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp), color = if (isActive) MaterialTheme.colorScheme.primary else Color.Gray)
+        }
+    }
+
+    @Composable
+    fun BoardDiscussionLog(log: List<BoardMessage>) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Forum, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Consensus Pipeline", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(12.dp))
+                log.takeLast(3).forEach { message ->
+                    Row(modifier = Modifier.padding(vertical = 4.dp)) {
+                        Text("${message.agent}: ", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text(message.message, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun DiagnosisResultCard(
+        response: String, 
+        transcription: String,
+        imageUri: android.net.Uri?,
+        trajectory: List<RecoveryMilestone>, 
+        onCopy: () -> Unit, 
+        onShare: () -> Unit, 
+        onPdf: (String, String, android.net.Uri?) -> Unit
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(32.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("Clinical Analysis", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+                    Row {
+                        IconButton(onClick = onCopy) { Icon(Icons.Outlined.ContentCopy, null) }
+                        IconButton(onClick = onShare) { Icon(Icons.Outlined.Share, null) }
+                        IconButton(onClick = { onPdf(transcription, response, imageUri) }) { Icon(Icons.Outlined.PictureAsPdf, null) }
+                    }
+                }
+                
+                Text(text = response, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(vertical = 16.dp))
+                
+                if (trajectory.isNotEmpty()) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 16.dp),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                    )
+                    Text("Recovery Trajectory", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(12.dp))
+                    trajectory.forEach { milestone ->
+                        Row(modifier = Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(modifier = Modifier.size(24.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(milestone.day.toString(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column {
+                                Text(milestone.action, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                                Text(milestone.bioTarget, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
