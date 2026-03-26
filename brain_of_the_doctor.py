@@ -14,9 +14,8 @@ def encode_image(image_path):
 
 # Default values
 query = "Is there something wrong with my face?"
-# Use a valid vision model. llama-3.2-11b-vision-preview has been decommissioned.
-# llava-v1.5-7b-4096 is a stable alternative for vision tasks on Groq.
-model = "llava-v1.5-7b-4096"
+# Using llama-3.2-11b-vision-preview as it is the current stable vision model on Groq.
+model = "llama-3.2-11b-vision-preview"
 
 def analyze_image_with_query(query, model, encoded_image):
     client = Groq(api_key=GROQ_API_KEY)  

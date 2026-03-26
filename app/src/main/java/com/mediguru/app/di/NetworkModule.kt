@@ -1,5 +1,6 @@
 package com.mediguru.app.di
 
+import com.mediguru.app.BuildConfig
 import com.mediguru.app.data.api.GroqApi
 import dagger.Module
 import dagger.Provides
@@ -18,8 +19,6 @@ import javax.inject.Singleton
 object NetworkModule {
 
     private const val BASE_URL = "https://api.groq.com/openai/"
-    // Note: In a real industrial app, this should be in BuildConfig or Secret Manager
-    private const val API_KEY = "Bearer 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"
 
     @Provides
     @Singleton
@@ -33,8 +32,10 @@ object NetworkModule {
     @Singleton
     fun provideAuthInterceptor(): Interceptor {
         return Interceptor { chain ->
+            // Use API Key from BuildConfig (Secured Industrial Upgrade)
+            val apiKey = "Bearer ${BuildConfig.GROQ_API_KEY}"
             val request = chain.request().newBuilder()
-                .addHeader("Authorization", API_KEY)
+                .addHeader("Authorization", apiKey)
                 .build()
             chain.proceed(request)
         }

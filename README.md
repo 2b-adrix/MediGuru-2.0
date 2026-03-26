@@ -1,79 +1,73 @@
-# 🏥 Rajasthan Medical Problem Assistant (RMPA)
+# 🏥 MediGuru AI - Industrial Grade Medical Assistant
 
-**Rajasthan Medical Problem Assistant (RMPA)** is an intelligent AI-powered healthcare platform built to help people across **Rajasthan** access quick and reliable medical insights through **voice, image, and text inputs**.
-
-With RMPA, users can **speak their symptoms in Hindi, Rajasthani, or English**, **upload medical images (like X-rays or prescriptions)**, and get **instant AI-based medical advice** — all in one simple, browser-based interface.
-
----
-
-## 🌿 Mission
-
-To make healthcare **accessible, multilingual, and AI-driven** for everyone in Rajasthan — especially for those in **rural and remote areas** — by bridging the gap between people and professional medical understanding.
+**MediGuru AI** is a professional-grade Android application that leverages state-of-the-art AI models to provide instant medical insights. By combining **Voice Transcription (Whisper)** and **Vision Analysis (Llama 3.2)**, MediGuru helps users understand symptoms and medical documents with ease.
 
 ---
 
 ## ✨ Key Features
 
-- 🗣️ **Voice Input:** Speak your symptoms in Hindi, Rajasthani, or English.
-- 🧠 **AI Medical Insights:** Get professional, concise, doctor-like responses.
-- 🩻 **Image Upload:** Analyze X-rays, prescriptions, or lab reports instantly.
-- 🔊 **Audio Output:** Listen to the doctor’s response in a natural local voice.
-- 🌐 **Browser-Based:** No installation required — access via any device.
-- 💊 **Prescription Analysis:** Understand prescriptions and medicines easily.
+- 🎙️ **Voice Symptom Analysis:** Speak your symptoms and get them transcribed and analyzed instantly using Groq's Whisper-large-v3.
+- 📸 **Medical Image Vision:** Upload X-Rays, prescriptions, or skin conditions for AI-powered visual analysis.
+- 💾 **Offline History:** All consultations are saved locally using **Room Database** for future reference.
+- 🔊 **Text-to-Speech:** AI responses are read aloud for better accessibility.
+- 📤 **Share & Export:** Easily copy or share diagnosis results with healthcare professionals.
+- 🎨 **Modern Material 3 UI:** A clean, intuitive interface with edge-to-edge support and dynamic themes.
 
 ---
 
-## 🖼️ Technical Architecture
+## 🚀 Tech Stack & Architecture
 
-![Technical Architecture](technical_architecture.png)
-
-> *Place `technical_architecture.png` in the project root directory or update the path accordingly.*
-
----
-
-## 🚀 Tech Stack
-
-- **Python 3.10+**
-- **Gradio** — For the interactive web interface
-- **gTTS** — Google Text-to-Speech (Hindi & Rajasthani output)
-- **Groq API** — For transcription and AI-based image understanding
-- **pydub, scipy** — For audio processing
-- **dotenv** — For managing environment variables
-- **Render** — For cloud deployment
+- **Language:** Kotlin
+- **UI Framework:** Jetpack Compose (Material 3)
+- **Architecture:** MVVM with Clean Architecture principles
+- **Dependency Injection:** Hilt (Dagger)
+- **Networking:** Retrofit & OkHttp
+- **Database:** Room (for persistent history)
+- **AI Backend:** Groq Cloud API (Whisper-large-v3 & Llama-3.2-11b-vision)
+- **Image Handling:** Coil
+- **Logging:** Timber
+- **Utilities:** Google Accompanist (Permissions), Splashscreen API
 
 ---
 
-🩺 Usage
+## 🛠️ Getting Started
 
-Speak your symptoms using the microphone.
+### Prerequisites
+1. Get a **Groq API Key** from [Groq Console](https://console.groq.com/).
+2. Add the key to your `local.properties`:
+   ```properties
+   GROQ_API_KEY=your_api_key_here
+   ```
 
-Upload medical images or prescriptions (optional).
+### Installation
+1. Clone the repository.
+2. Open in **Android Studio Jellyfish** or newer.
+3. Sync Gradle and Run on an emulator or physical device.
 
-View and listen to AI-generated medical advice.y:
+---
 
-Rajasthan-Medical-Problem-Assistant/
-├── brain_of_the_doctor.py         # AI logic for image & symptom analysis
-├── gradio_app.py                  # Main Gradio web app
-├── requirements.txt               # Project dependencies
-├── render.yaml                    # Render deployment configuration
-├── voice_of_the_doctor.py         # Text-to-speech system
-├── voice_of_the_patient.py        # Voice transcription system
-├── .env.example                   # Example environment variables
-└── technical_architecture.png     # System architecture image
+## 📂 Project Structure
 
-Rajasthan Health Focus
+```text
+com.mediguru.app/
+├── data/
+│   ├── api/          # Retrofit Interfaces
+│   ├── local/        # Room Database, DAOs, Entities
+│   ├── model/        # Data Transfer Objects (DTOs)
+│   └── repository/   # Business Logic & Data Coordination
+├── di/               # Hilt Dependency Injection Modules
+├── ui/
+│   ├── theme/        # Material 3 Design System
+│   └── DiagnosisViewModel.kt
+└── MainActivity.kt   # Main Entry Point & Compose UI
+```
 
-☀️ Heatstroke and Dehydration
+---
 
-💧 Waterborne Diseases (Typhoid, Cholera, Diarrhea)
+## 🛡️ Disclaimer
+*MediGuru AI is an educational tool and does not provide professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.*
 
-🧒 Malnutrition and Anemia
+---
 
-🌫️ Dust and Respiratory Issues
-
-🦵 Joint Pain and Arthritis
-
-👤 Author
-
-Aditya Kumar Mishra 
-Adapted for Rajasthan’s Healthcare Context
+👤 **Developed by Aditya Kumar Mishra**
+*Targeting the highest standards of Android Development.*

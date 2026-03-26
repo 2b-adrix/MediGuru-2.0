@@ -9,7 +9,7 @@ data class ChatRequest(
 
 data class ChatMessage(
     val role: String,
-    val content: List<ChatContent>
+    val content: Any // Can be String for text or List<ChatContent> for multi-modal
 )
 
 data class ChatContent(

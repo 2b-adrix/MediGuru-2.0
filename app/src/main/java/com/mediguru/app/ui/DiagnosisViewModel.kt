@@ -3,10 +3,14 @@ package com.mediguru.app.ui
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mediguru.app.data.local.DiagnosisEntity
 import com.mediguru.app.data.repository.DiagnosisRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -28,6 +32,9 @@ class DiagnosisViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(DiagnosisState())
     val uiState = _uiState.asStateFlow()
+
+    val diagnosisHistory: StateFlow<List<DiagnosisEntity>> = repository.allDiagnoses
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun onImageSelected(uri: Uri?) {
         _uiState.value = _uiState.value.copy(selectedImageUri = uri)
@@ -56,6 +63,12 @@ class DiagnosisViewModel @Inject constructor(
                     error = error.localizedMessage ?: "Unknown error occurred"
                 )
             }
+        }
+    }
+
+    fun clearHistory() {
+        viewModelScope.launch {
+            repository.clearHistory()
         }
     }
 }

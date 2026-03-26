@@ -1,3 +1,26 @@
 <resources>
-    <string name="app_name">MediGuru</string>
+    <string name="app_name">MediGuru AI</string>
+    <string name="welcome_message">Welcome to MediGuru AI</string>
+    <string name="upload_image">Upload X-Ray / Prescription</string>
+    <string name="tap_to_speak">Tap to speak symptoms</string>
+    <string name="recording">Recording…</string>
+    <string name="get_diagnosis">Get AI Diagnosis</string>
+    <string name="consulting_ai">Consulting AI…</string>
+    <string name="ai_doctor_response">AI Doctor Response</string>
+    <string name="history">Consultation History</string>
+    <string name="clear_history">Clear History</string>
+    <string name="symptoms_label">Symptoms: %1$s</string>
+    <string name="share_diagnosis">Share Diagnosis</string>
+    <string name="copy_diagnosis">Copy to Clipboard</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="delete_confirm_title">Clear History?</string>
+    <string name="delete_confirm_msg">Are you sure you want to delete all consultation records? This cannot be undone.</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="no_history">No previous consultations found.</string>
+    <string name="tap_to_select">Tap to select</string>
+    <string name="explain_hint">Explain how you feel…</string>
+    <string name="medical_image">Medical Image</string>
+    <string name="change_image">Change Image</string>
+    <string name="sharing_subject">MediGuru AI Diagnosis</string>
 </resources>
