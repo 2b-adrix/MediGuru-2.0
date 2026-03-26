@@ -1,25 +1,43 @@
 package com.mediguru.app.data.model
 
-data class TranscriptionResponse(val text: String)
+import com.google.gson.annotations.SerializedName
+
+data class TranscriptionResponse(
+    @SerializedName("text") val text: String
+)
 
 data class ChatRequest(
-    val model: String,
-    val messages: List<ChatMessage>
+    @SerializedName("model") val model: String,
+    @SerializedName("messages") val messages: List<ChatMessage>,
+    @SerializedName("max_tokens") val maxTokens: Int? = null,
+    @SerializedName("temperature") val temperature: Double? = null,
+    @SerializedName("stream") val stream: Boolean? = null
 )
 
 data class ChatMessage(
-    val role: String,
-    val content: Any // Can be String for text or List<ChatContent> for multi-modal
+    @SerializedName("role") val role: String,
+    @SerializedName("content") val content: Any // Can be String for text or List<ChatContent> for multi-modal
 )
 
 data class ChatContent(
-    val type: String,
-    val text: String? = null,
-    val image_url: ImageUrl? = null
+    @SerializedName("type") val type: String,
+    @SerializedName("text") val text: String? = null,
+    @SerializedName("image_url") val image_url: ImageUrl? = null
 )
 
-data class ImageUrl(val url: String)
+data class ImageUrl(
+    @SerializedName("url") val url: String
+)
 
-data class ChatResponse(val choices: List<Choice>)
-data class Choice(val message: ChatMessageOutput)
-data class ChatMessageOutput(val role: String, val content: String)
+data class ChatResponse(
+    @SerializedName("choices") val choices: List<Choice>
+)
+
+data class Choice(
+    @SerializedName("message") val message: ChatMessageOutput
+)
+
+data class ChatMessageOutput(
+    @SerializedName("role") val role: String,
+    @SerializedName("content") val content: String
+)

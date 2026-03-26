@@ -5,6 +5,7 @@ import com.mediguru.app.data.model.ChatResponse
 import com.mediguru.app.data.model.TranscriptionResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.http.*
 
 interface GroqApi {
@@ -12,9 +13,14 @@ interface GroqApi {
     @Multipart
     suspend fun transcribeAudio(
         @Part file: MultipartBody.Part,
-        @Part("model") model: RequestBody,
-        @Part("language") language: RequestBody? = null
+        @Part("model") model: RequestBody
     ): TranscriptionResponse
+
+    @POST("v1/chat/completions")
+    @Streaming
+    suspend fun chatCompletionStream(
+        @Body request: ChatRequest
+    ): ResponseBody
 
     @POST("v1/chat/completions")
     suspend fun chatCompletion(
